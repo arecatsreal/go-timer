@@ -43,12 +43,16 @@ func main() {
 	if timerHours != 0 {
 		timerLength = timerLength + ((timerHours * 60) * 60)
 	}
-	timer(timerLength)
+	timer(timerLength, alarmFile)
 }
 
+<<<<<<< HEAD
+func timer(length int, alarmFile string) {
+=======
 func timer(length int) {
+>>>>>>> 2a06748820606f4d439155a9aba4e8521aba93f1
 
-	f, err := os.Open("alarm.mp3")
+	f, err := os.Open(alarmFile)
 	if err != nil {
 		log.Fatal(err)
 	}
