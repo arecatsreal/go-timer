@@ -14,10 +14,12 @@ import (
 
 func main() {
 	var timerSeconds, timerMinutes, timerHours int
+	var alarmFile string
 	var help bool
 	flag.IntVar(&timerSeconds, "s", 0, "The number of seconds in the timers total time")
 	flag.IntVar(&timerMinutes, "m", 0, "The number of minutes in the timers total time")
 	flag.IntVar(&timerHours, "h", 0, "The number of hours in the timers total time")
+	flag.StringVar(&alarmFile, "alarmFile", "./alarm.mp3", "The alarm mp3 file to be played at the end of the timer.")
 	flag.BoolVar(&help, "help", false, "Print Useage info.")
 	flag.Parse()
 
@@ -45,10 +47,6 @@ func main() {
 }
 
 func timer(length int) {
-	for i := 0; i != length; i++ {
-		fmt.Print(counter((length - i)))
-		time.Sleep(1 * time.Second)
-	}
 
 	f, err := os.Open("alarm.mp3")
 	if err != nil {
@@ -60,6 +58,10 @@ func timer(length int) {
 		log.Fatal(err)
 	}
 	defer streamer.Close()
+	for i := 0; i != length; i++ {
+		fmt.Print(counter((length - i)))
+		time.Sleep(1 * time.Second)
+	}
 
 	for true {
 		speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
