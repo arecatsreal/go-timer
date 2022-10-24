@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"log"
@@ -12,6 +13,7 @@ import (
 	"github.com/faiface/beep/speaker"
 )
 
+var timeFile bool
 func main() {
 	var timerSeconds, timerMinutes, timerHours int
 	var alarmFile string
@@ -20,6 +22,7 @@ func main() {
 	flag.IntVar(&timerMinutes, "m", 0, "The number of minutes in the timers total time")
 	flag.IntVar(&timerHours, "h", 0, "The number of hours in the timers total time")
 	flag.StringVar(&alarmFile, "alarmFile", "./alarm.mp3", "The alarm mp3 file to be played at the end of the timer.")
+	flag.BoolVar(&timeFile, "timeFile", false, "Write time to /tmp/go-timer.")
 	flag.BoolVar(&help, "help", false, "Print Useage info.")
 	flag.Parse()
 
@@ -43,14 +46,11 @@ func main() {
 	if timerHours != 0 {
 		timerLength = timerLength + ((timerHours * 60) * 60)
 	}
+	os.Remove("/tmp/go-timer")
 	timer(timerLength, alarmFile)
 }
 
-<<<<<<< HEAD
 func timer(length int, alarmFile string) {
-=======
-func timer(length int) {
->>>>>>> 2a06748820606f4d439155a9aba4e8521aba93f1
 
 	f, err := os.Open(alarmFile)
 	if err != nil {
@@ -86,6 +86,20 @@ func counter(in int) string {
 		h = float64(in) / 3600
 		m = (math.Mod(float64(in), 3600) / 60)
 		s = math.Mod(math.Mod(math.Mod(float64(in), 60), 60), 60)
+	}
+
+	if timeFile {
+		file, err := os.Create("/tmp/go-timer")
+		if err != nil {
+			log.Fatal("Error createing file timeFile", ":", err)
+		}
+		w := bufio.NewWriter(file)
+		dump, err := w.WriteString(fmt.Sprintf("%v:%v:%v\n", int(h), int(m), int(s)))
+		if err != nil {
+			log.Fatal(err)
+		}
+		dump = dump + 1
+		w.Flush()
 	}
 
 	return fmt.Sprintf("%v:%v:%v\n", int(h), int(m), int(s))
