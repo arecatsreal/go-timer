@@ -14,16 +14,17 @@ import (
 )
 
 var timeFile bool
+
 func main() {
 	var timerSeconds, timerMinutes, timerHours int
 	var alarmFile string
-	var help bool
+	var help, stopwatch bool
 	flag.IntVar(&timerSeconds, "s", 0, "The number of seconds in the timers total time")
 	flag.IntVar(&timerMinutes, "m", 0, "The number of minutes in the timers total time")
 	flag.IntVar(&timerHours, "h", 0, "The number of hours in the timers total time")
 	flag.StringVar(&alarmFile, "alarmFile", "./alarm.mp3", "The alarm mp3 file to be played at the end of the timer.")
 	flag.BoolVar(&timeFile, "timeFile", false, "Write time to /tmp/go-timer.")
-	flag.BoolVar(&help, "help", false, "Print Useage info.")
+	flag.BoolVar(&stopwatch, "stopwatch", false, "Makes go timer act as a stopwatch.")
 	flag.Parse()
 
 	if help {
@@ -31,7 +32,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	if timerSeconds == 0 && timerMinutes == 0 && timerHours == 0 {
+	if timerSeconds == 0 && timerMinutes == 0 && timerHours == 0 && !stopwatch {
 		fmt.Println("Please set a time for the timer.")
 		os.Exit(0)
 	}
@@ -47,7 +48,20 @@ func main() {
 		timerLength = timerLength + ((timerHours * 60) * 60)
 	}
 	os.Remove("/tmp/go-timer")
-	timer(timerLength, alarmFile)
+	if !stopwatch {
+		timer(timerLength, alarmFile)
+	} else {
+		stopw()
+	}
+}
+
+func stopw() {
+	var i int
+	for true {
+		fmt.Print(counter(i))
+		time.Sleep(1 * time.Second)
+		i++
+	}
 }
 
 func timer(length int, alarmFile string) {
@@ -88,13 +102,35 @@ func counter(in int) string {
 		s = math.Mod(math.Mod(math.Mod(float64(in), 60), 60), 60)
 	}
 
+	hr := fmt.Sprint(int(h))
+	mi := fmt.Sprint(int(m))
+	se := fmt.Sprint(int(s))
+	if int(h) == 0 {
+		hr = "00"
+	}
+	if int(m) == 0 {
+		mi = "00"
+	}
+	if int(s) == 0 {
+		se = "00"
+	}
+	if int(h) < 10 {
+		hr = fmt.Sprint("0", int(h))
+	}
+	if int(m) < 10 {
+		mi = fmt.Sprint("0", int(m))
+	}
+	if int(s) < 10 {
+		se = fmt.Sprint("0", int(s))
+	}
+
 	if timeFile {
 		file, err := os.Create("/tmp/go-timer")
 		if err != nil {
 			log.Fatal("Error createing file timeFile", ":", err)
 		}
 		w := bufio.NewWriter(file)
-		dump, err := w.WriteString(fmt.Sprintf("%v:%v:%v\n", int(h), int(m), int(s)))
+		dump, err := w.WriteString(fmt.Sprintf("%s:%s:%s\n", hr, mi, se))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -102,5 +138,5 @@ func counter(in int) string {
 		w.Flush()
 	}
 
-	return fmt.Sprintf("%v:%v:%v\n", int(h), int(m), int(s))
+	return fmt.Sprintf("%s:%s:%s\n", hr, mi, se)
 }
